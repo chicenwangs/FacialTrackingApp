@@ -1,0 +1,1 @@
+.grid.svelte-15kgmsr{grid-template-columns:repeat(auto-fit,minmax(380px,1fr));align-items:start;gap:20px;display:grid}.fields.svelte-15kgmsr{gap:14px;display:grid}.fields.svelte-15kgmsr label:where(.svelte-15kgmsr){grid-template-columns:minmax(0,1fr) 160px 70px;align-items:center;gap:10px;display:grid}.actions.svelte-15kgmsr{grid-column:1/-1}

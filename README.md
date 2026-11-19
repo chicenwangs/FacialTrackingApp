@@ -9,7 +9,9 @@ The app was built from the original `FacialTrackingApp` (v1) plus the useful par
 - **Its own camera output.** The only output is the bundled DirectShow filter (`native/softcam`), named **McG Cam** after the build it came from. There is no output picker and no OBS/Unity option.
 - **The webcam is picked automatically.** Startup probes camera indices and uses the saved one if it works, otherwise the first working camera. Setup no longer asks you to choose.
 - **v1 two-box tracking, much cheaper.** `facecam/vision/hybrid_face.py` fuses face landmarks (0.6) + a tight box (0.3) + an enlarged box (0.1), with speed-adaptive smoothing, Kalman, rate limiting and a deadband so a still face stays still. The default landmark source is OpenCV YuNet (233 KB ONNX, `models/`), which avoids loading MediaPipe/TFLite at all: **~106 MB engine, ~132 MB with the native UI**. Use `python main.py --facemesh` for the old MediaPipe FaceMesh landmarks (better fine detail, ~170 MB engine). KCF was dropped: it allocated ~126 MB of FFT buffers on first update; two cheap MOSSE boxes replace it.
-- **Light UI by default.** Native Tkinter window with preview, status, zoom, brightness/contrast, webcam and registration. `python main.py --web` gives McG's Svelte UI at ~150 MB extra. Closing **X really quits** in both.
+- **Freeze framing.** Press **Ctrl+Alt+F** (from any app), use the Freeze button, or the tray menu. The crop holds exactly where it is; resuming re-seeds the filter so it eases back instead of jumping.
+- **Tray + Start with Windows.** An opt-in checkbox writes a per-user Run entry and starts FaceCam in the tray. Tray menu: Open, Freeze framing, Quit. Closing **X still quits**.
+- **Restyled native UI.** Card layout, status chips, preview frame and clear controls. `python main.py --web` keeps McG's Svelte UI at ~150 MB extra; both UIs have a Freeze button.
 - **30 fps preview and output.** `facecam/ui/preview.py` serves 640×360 MJPEG at 30 fps; the virtual camera stays 1280×720 at 30 fps. Separate capture / vision / output threads use a newest-frame buffer and placeholder frames when the webcam stalls.
 
 ## Install and run
@@ -25,8 +27,9 @@ The webcam is picked automatically at startup. Registration (once, admin) runs `
 
 ## UI
 
-- **Native UI (default)** — live preview (Output / Camera toggle), status, zoom, webcam index, brightness, contrast, register button, Quit button and working X.
+- **Native UI (default)** — live preview (Output / Camera toggle), Freeze button, status chips, zoom, webcam index, brightness, contrast, autostart checkbox, register button and working X.
 - **`--web` UI** — McG's Svelte Home / Settings / Setup pages with the same controls; Setup appears only if the camera is not registered.
+- **Tray** — Open, Freeze framing, Quit. Hotkey: Ctrl+Alt+F.
 - Both UIs use the same Python bridge and local MJPEG preview.
 
 Settings are stored in `%APPDATA%\FaceCam\settings.json` (override with `FACECAM_HOME`).
@@ -39,7 +42,8 @@ Settings are stored in `%APPDATA%\FaceCam\settings.json` (override with `FACECAM
 | `facecam/vision` | Restored v1 landmark + MOSSE tracking |
 | `facecam/framing` | Kalman, zoom-to-face, crop, rate limiting (from McG) |
 | `facecam/vcam` | softcam output, registration check, placeholder frames |
-| `facecam/core` | Thread wiring and fixed-rate output |
+| `facecam/core` | Thread wiring, freeze state and fixed-rate output |
+| `facecam/platform` | Tray hotkey, autostart, vcam registration, elevated regsvr32 |
 | `facecam/ui` | Native Tkinter shell (default), optional pywebview shell, shared bridge and MJPEG preview |
 | `ui/` | Svelte source and built static site |
 | `native/softcam` | Built DLL and rebuild instructions |

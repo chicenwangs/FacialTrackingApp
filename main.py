@@ -18,7 +18,7 @@ def show_error(message: str) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(prog="FaceCam")
     parser.add_argument("--web", action="store_true",
-                        help="use McG's Svelte UI (looks nicer, uses ~150MB more RAM)")
+                        help="use the Svelte UI (looks nicer, uses ~150MB more RAM)")
     parser.add_argument("--facemesh", action="store_true",
                         help="use MediaPipe FaceMesh instead of the lighter YuNet detector")
     parser.add_argument("--minimized", action="store_true",

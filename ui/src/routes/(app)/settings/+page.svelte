@@ -70,12 +70,12 @@
 						: ''}
 				</p>
 				<p class="quiet">
-					FaceCam creates its own camera called <strong>McG Cam</strong> (DirectShow, 64-bit). Apps
+					FaceCam creates its own camera called <strong>FaceCam Camera</strong> (DirectShow, 64-bit). Apps
 					pick it directly — you do not need OBS. Registering needs admin once.
 				</p>
 				<div class="row">
 					<button type="button" class="btn" onclick={() => vcam(true)}
-						>{v?.status === 'registered' ? 'Re-register' : 'Register McG Cam'}</button
+						>{v?.status === 'registered' ? 'Re-register' : 'Register FaceCam Camera'}</button
 					>
 					<button
 						type="button"

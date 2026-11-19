@@ -1,7 +1,7 @@
 """FaceCam: webcam face framing into a virtual camera.
 
-Borrowed from the McG v2 attempt (capture / framing / softcam) with the hand-sign
-macro system removed. Importing this package disables the slow MSMF hardware
+The capture, framing and virtual-camera layers come from an earlier prototype with
+its hand-sign macro system removed. Importing this package disables the slow MSMF hardware
 transform path before OpenCV is loaded.
 """
 

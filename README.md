@@ -2,16 +2,16 @@
 
 A Windows app that follows your face with the webcam and sends the framed video to **its own** virtual camera. Zoom, Discord, Teams, OBS and browsers pick that camera directly — you do not need OBS Virtual Camera or any other app that already provides one.
 
-The app was built from the original `FacialTrackingApp` (v1) plus the useful parts of the McG v2 attempt. The hand-sign macro system is not included.
+This is a full rewrite of `FacialTrackingApp`: it keeps the good tracking from v1 and the useful architecture from an earlier prototype, with its hand-sign macro system left out.
 
 ## What you asked for
 
-- **Its own camera output.** The only output is the bundled DirectShow filter (`native/softcam`), named **McG Cam** after the build it came from. There is no output picker and no OBS/Unity option.
+- **Its own camera output.** The only output is the bundled DirectShow filter (`native/softcam`), named **FaceCam Camera** after the build it came from. There is no output picker and no OBS/Unity option.
 - **The webcam is picked automatically.** Startup probes camera indices and uses the saved one if it works, otherwise the first working camera. Setup no longer asks you to choose.
 - **v1 two-box tracking, much cheaper.** `facecam/vision/hybrid_face.py` fuses face landmarks (0.6) + a tight box (0.3) + an enlarged box (0.1), with speed-adaptive smoothing, Kalman, rate limiting and a deadband so a still face stays still. The default landmark source is OpenCV YuNet (233 KB ONNX, `models/`), which avoids loading MediaPipe/TFLite at all: **~106 MB engine, ~132 MB with the native UI**. Use `python main.py --facemesh` for the old MediaPipe FaceMesh landmarks (better fine detail, ~170 MB engine). KCF was dropped: it allocated ~126 MB of FFT buffers on first update; two cheap MOSSE boxes replace it.
 - **Freeze framing.** Press **Ctrl+Alt+F** (from any app), use the Freeze button, or the tray menu. The crop holds exactly where it is; resuming re-seeds the filter so it eases back instead of jumping.
 - **Tray + Start with Windows.** An opt-in checkbox writes a per-user Run entry and starts FaceCam in the tray. Tray menu: Open, Freeze framing, Quit. Closing **X still quits**.
-- **Restyled native UI.** Card layout, status chips, preview frame and clear controls. `python main.py --web` keeps McG's Svelte UI at ~150 MB extra; both UIs have a Freeze button.
+- **Restyled native UI.** Card layout, status chips, preview frame and clear controls. `python main.py --web` keeps the Svelte UI at ~150 MB extra; both UIs have a Freeze button.
 - **30 fps preview and output.** `facecam/ui/preview.py` serves 640×360 MJPEG at 30 fps; the virtual camera stays 1280×720 at 30 fps. Separate capture / vision / output threads use a newest-frame buffer and placeholder frames when the webcam stalls.
 
 ## Install and run
@@ -23,12 +23,12 @@ pip install -r requirements.txt
 python main.py
 ```
 
-The webcam is picked automatically at startup. Registration (once, admin) runs `regsvr32` on `native\softcam\bin\softcam.dll`; you can also do it from an admin shell or from the Settings buttons. After registering, restart FaceCam.
+The webcam is picked automatically at startup. Registration (once, admin) runs `regsvr32` on `native\softcam\bin\softcam-facecam.dll`; you can also do it from an admin shell or from the Settings buttons. After registering, restart FaceCam. In other apps the camera appears as **FaceCam Camera**.
 
 ## UI
 
 - **Native UI (default)** — live preview (Output / Camera toggle), Freeze button, status chips, zoom, webcam index, brightness, contrast, autostart checkbox, register button and working X.
-- **`--web` UI** — McG's Svelte Home / Settings / Setup pages with the same controls; Setup appears only if the camera is not registered.
+- **`--web` UI** — the original Svelte Home / Settings / Setup pages with the same controls; Setup appears only if the camera is not registered.
 - **Tray** — Open, Freeze framing, Quit. Hotkey: Ctrl+Alt+F.
 - Both UIs use the same Python bridge and local MJPEG preview.
 
@@ -40,7 +40,7 @@ Settings are stored in `%APPDATA%\FaceCam\settings.json` (override with `FACECAM
 | --- | --- |
 | `facecam/capture` | Webcam thread, newest-frame slot, MSMF→DSHOW retry |
 | `facecam/vision` | Restored v1 landmark + MOSSE tracking |
-| `facecam/framing` | Kalman, zoom-to-face, crop, rate limiting (from McG) |
+| `facecam/framing` | Kalman, zoom-to-face, crop, rate limiting (from an earlier prototype) |
 | `facecam/vcam` | softcam output, registration check, placeholder frames |
 | `facecam/core` | Thread wiring, freeze state and fixed-rate output |
 | `facecam/platform` | Tray hotkey, autostart, vcam registration, elevated regsvr32 |
@@ -71,4 +71,4 @@ Conclusion: Rust does not automatically save memory. A fast inference backend co
 
 ## Not included
 
-The McG gesture pipeline, sign trainer, macro engine, Win32 hotkeys, tray, overlay HUD, autostart and installer. The OpenCV preview window and the output picker from the earlier v2 were also removed.
+The hand-sign gesture pipeline, sign trainer, macro engine, Win32 hotkeys, tray, overlay HUD, autostart and installer. The OpenCV preview window and the output picker from the earlier v2 were also removed.

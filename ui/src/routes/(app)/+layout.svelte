@@ -32,7 +32,7 @@
 	<span class="chip" role="status" aria-live="polite">
 		{stateWords(s)}{s?.fps?.output ? ` · ${Math.round(s.fps.output)} fps` : ''}
 	</span>
-	<span class="chip">McG Cam · {s?.vcam?.status ?? '…'}{s?.vcam?.connected ? ' · in use' : ''}</span>
+	<span class="chip">FaceCam Camera · {s?.vcam?.status ?? '…'}{s?.vcam?.connected ? ' · in use' : ''}</span>
 	<button class="btn" onclick={() => call('quit')}>Quit</button>
 </header>
 <main>{@render children()}</main>

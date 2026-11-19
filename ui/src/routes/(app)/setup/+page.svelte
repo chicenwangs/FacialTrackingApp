@@ -7,7 +7,7 @@
 
 	async function register() {
 		const r = await call('register_vcam');
-		msg = r.ok ? 'Done. Restart FaceCam so it can send to McG Cam.' : r.error;
+		msg = r.ok ? 'Done. Restart FaceCam so it can send to FaceCam Camera.' : r.error;
 	}
 	async function finish() {
 		await call('finish_setup');
@@ -23,7 +23,7 @@
 			Your webcam was chosen automatically: <strong>{live.s?.camera ?? 'checking…'}</strong>.
 		</p>
 		<p>
-			FaceCam creates its own camera called <strong>McG Cam</strong> that Zoom, Discord, Teams, OBS
+			FaceCam creates its own camera called <strong>FaceCam Camera</strong> that Zoom, Discord, Teams, OBS
 			and browsers can pick. Windows asks for admin permission once. You don't need OBS.
 		</p>
 		<p>Status: <strong>{v?.status ?? '…'}</strong></p>
@@ -35,7 +35,7 @@
 			>
 		</div>
 		{#if v?.status === 'not installed'}<p class="quiet">
-				softcam.dll is missing. See native/softcam/README.md.
+				The FaceCam camera DLL is missing. See native/softcam/README.md.
 			</p>{/if}
 	</div>
 </section>

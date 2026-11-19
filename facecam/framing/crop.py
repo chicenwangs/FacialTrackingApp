@@ -1,4 +1,4 @@
-"""Pure crop / zoom math (from McG, ported from the original main loop)."""
+"""Pure crop / zoom math (from an earlier prototype, ported from the original main loop)."""
 
 from __future__ import annotations
 

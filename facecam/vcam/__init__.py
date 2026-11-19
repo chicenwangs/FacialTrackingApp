@@ -14,9 +14,9 @@ __all__ = ["NullOutput", "SoftcamOutput", "make_output", "placeholder", "vcam_st
 
 
 class NullOutput:
-    """Keeps the app running until McG Cam is registered; shows a clear status."""
+    """Keeps the app running until FaceCam Camera is registered; shows a clear status."""
 
-    device = "None (McG Cam not ready)"
+    device = "None (FaceCam Camera not ready)"
 
     def open(self, width, height, fps) -> None:
         self.fps = fps

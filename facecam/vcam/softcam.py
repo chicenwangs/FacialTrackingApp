@@ -1,4 +1,4 @@
-"""SoftcamOutput: ctypes wrapper over softcam.dll (from McG, ADR-009)."""
+"""SoftcamOutput: ctypes wrapper over softcam.dll (from an earlier prototype, ADR-009)."""
 
 from __future__ import annotations
 
@@ -12,9 +12,9 @@ import numpy as np
 from facecam.paths import resource_dir
 from facecam.platform.vcam_reg import is_registered
 
-DEFAULT_DLL = resource_dir() / "native" / "softcam" / "bin" / "softcam.dll"
-CLSID = "{41411E10-0F51-4062-97E7-8D2914F8CE52}"
-NAME = "McG Cam"       # name baked into the DLL at build time
+DEFAULT_DLL = resource_dir() / "native" / "softcam" / "bin" / "softcam-facecam.dll"
+CLSID = "{B7E2A4C1-9D3F-4E6A-8B25-0C1D2E3F4A5B}"
+NAME = "FaceCam Camera"     # name baked into the DLL at build time
 
 
 def dll_path() -> Path:

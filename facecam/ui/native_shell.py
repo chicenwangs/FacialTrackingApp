@@ -35,7 +35,8 @@ class NativeShell:
 
         self.root = tk.Tk()
         self.root.title("FaceCam")
-        self.root.geometry("1040x800")
+        self.root.geometry("1040x840")
+        self.root.minsize(980, 760)
         self.root.configure(bg=BG)
         self.root.protocol("WM_DELETE_WINDOW", self.close)
 
@@ -44,6 +45,7 @@ class NativeShell:
         self.camera_text = tk.StringVar(value="Webcam: …")
         self.vcam_text = tk.StringVar(value="Virtual camera: …")
         self.fps_text = tk.StringVar(value="Stages: measuring…")
+        self.output_text = tk.StringVar(value="Output: 1280×720 @ 30 fps")
         self.freeze_text = tk.StringVar(value="Freeze framing")
         self.message = tk.StringVar(value="")
 
@@ -67,6 +69,8 @@ class NativeShell:
         return frame
 
     def _build(self) -> None:
+        accent = tk.Frame(self.root, bg=ACCENT, height=4)
+        accent.pack(fill="x")
         header = self._card(self.root)
         tk.Label(header, text="FaceCam", font=(FONT, 24, "bold"),
                  bg=CARD, fg=INK).pack(side="left")
@@ -82,7 +86,10 @@ class NativeShell:
         strip.pack(fill="x", pady=(0, 8))
         tk.Label(strip, text="Live preview", font=(FONT, 11, "bold"),
                  bg=STRIP, fg=INK).pack(side="left", padx=8, pady=3)
-        self.preview_label = tk.Label(preview_card, text="Starting preview…",
+        frame = tk.Frame(preview_card, bg=INK, highlightbackground=ACCENT,
+                         highlightthickness=2)
+        frame.pack()
+        self.preview_label = tk.Label(frame, text="Starting preview…",
                                       bg=INK, fg=CARD, width=W, height=H)
         self.preview_label.pack()
 
@@ -110,7 +117,7 @@ class NativeShell:
         status = self._card(self.root)
         tk.Label(status, text="Status", font=(FONT, 11, "bold"),
                  bg=CARD, fg=INK).pack(anchor="w")
-        for variable in (self.camera_text, self.vcam_text, self.fps_text):
+        for variable in (self.camera_text, self.vcam_text, self.output_text, self.fps_text):
             tk.Label(status, textvariable=variable, font=(FONT, 10), bg=CARD,
                      fg=INK, anchor="w").pack(fill="x", pady=1)
 
@@ -133,7 +140,7 @@ class NativeShell:
         tk.Checkbutton(row, text="Start with Windows", variable=self.autostart,
                        font=(FONT, 10), bg=CARD, fg=INK,
                        activebackground=CARD).pack(side="left")
-        tk.Button(row, text="Register McG Cam", font=(FONT, 10), bg=CARD, fg=INK,
+        tk.Button(row, text="Register FaceCam Camera", font=(FONT, 10), bg=CARD, fg=INK,
                   relief="groove", command=self._register).pack(side="left", padx=12)
         tk.Button(row, text="Save settings", font=(FONT, 10, "bold"), bg=INK,
                   fg=CARD, relief="groove", command=self._save).pack(side="left")
@@ -222,9 +229,11 @@ class NativeShell:
         state = self.bridge.state()
         self.status.set(state["state"].capitalize())
         self.status_label.configure(bg=ACCENT if not state["frozen"] else STRIP)
+        self.freeze_button.configure(bg=STRIP if state["frozen"] else ACCENT,
+                                     fg=INK if state["frozen"] else CARD)
         self.camera_text.set(f"● Webcam: {state['camera']}")
         vcam = state["vcam"]
-        self.vcam_text.set(f"● Virtual camera: McG Cam · {vcam['status']}"
+        self.vcam_text.set(f"● Virtual camera: FaceCam Camera · {vcam['status']}"
                            + (" · in use" if vcam["connected"] else ""))
         stages = ", ".join(f"{name} {value} fps" for name, value in self.app.fps.items())
         self.fps_text.set(f"● {stages or 'measuring…'}")

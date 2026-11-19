@@ -61,7 +61,7 @@
 		<dl class="body">
 			<dt>Virtual camera</dt>
 			<dd>
-				McG Cam · {s?.vcam?.status ?? '…'}{s?.vcam?.connected ? ' · in use' : ''}
+				FaceCam Camera · {s?.vcam?.status ?? '…'}{s?.vcam?.connected ? ' · in use' : ''}
 				{#if s && s.vcam.status !== 'registered'}<a href="#/settings">Set up</a>{/if}
 			</dd>
 			<dt>Webcam</dt>

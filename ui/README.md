@@ -1,6 +1,8 @@
-# ui — SvelteKit 3 / Svelte 5 (adapter-static, hash router), shown in pywebview
+# FaceCam web UI
 
-- `npm ci` · `npm run build` → `build/` (loaded by `src/mcg/ui/shell.py`) · `npm run check` (svelte-check).
-- Screens = wireframes: Home, Signs, Test mode, Macros, Settings, Setup (first run), Overlay (`#/overlay`).
-- Bridge: `#lib/api.svelte.ts` → `window.pywebview.api.*` (`src/mcg/ui/bridge.py`). State push: `window.__sc.emit` 10/s.
-- Tokens only (`src/lib/app.css`, docs/THEME.md). No raw hex in components. Details: ADR-011.
+SvelteKit 3 / Svelte 5 static build, shown in pywebview when FaceCam is run with `--web`. The default UI is a native Tkinter window in `facecam/ui/native_shell.py`.
+
+- `npm ci` then `npm run build` produces `build/`, which is loaded by `facecam/ui/shell.py`. `npm run check` runs svelte-check.
+- Screens: Home (preview and status), Settings, Setup (only when the camera is not registered).
+- Bridge: `src/lib/api.svelte.ts` talks to `window.pywebview.api.*` from `facecam/ui/bridge.py`. State is pushed at 10 Hz with `window.__sc.emit`.
+- Design tokens live in `src/lib/app.css`; components use those variables rather than raw colours.

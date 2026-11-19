@@ -58,7 +58,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-Optional flags: `--web` uses McG's Svelte/pywebview UI (~150 MB extra), `--facemesh` uses MediaPipe landmarks instead of the lighter OpenCV YuNet detector (source only, ~170 MB), `--minimized` starts in the tray dormant.
+Optional flags: `--web` uses the Svelte/pywebview UI (~150 MB extra, available in the installed app too), `--facemesh` uses MediaPipe landmarks instead of the lighter OpenCV YuNet detector (source only, ~170 MB), `--minimized` starts in the tray dormant.
 
 Build the release:
 

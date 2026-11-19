@@ -15,7 +15,7 @@ Optional: desktop shortcut and "Start FaceCam with Windows" (starts dormant in t
 - Separate capture, vision and fixed 30 fps output threads; placeholder frames if the webcam stalls.
 - `Ctrl+Alt+F` freezes framing; `Ctrl+Alt+P` enters low-power mode (webcam closed, detection stopped, ~111 MB → ~83 MB).
 - Tray with Open / Freeze / Pause / Quit; optional autostart; closing X quits.
-- Native UI by default; `--web` gives the Svelte UI when running from source.
+- Native UI by default; `--web` gives the Svelte UI (also available in the installed app).
 - YuNet detector by default; `--facemesh` is available only from source.
 
 ## Notes

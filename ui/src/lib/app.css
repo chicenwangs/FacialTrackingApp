@@ -1,0 +1,262 @@
+/* McG "Lotus" tokens (light). Layout habits from Life Tracker. See docs/THEME.md. */
+:root {
+	--page:
+		radial-gradient(60% 60% at 0% 0%, #e4b5ad 0%, rgb(228 181 173 / 0) 70%),
+		radial-gradient(60% 60% at 100% 0%, #f7f4d5 0%, rgb(247 244 213 / 0) 70%),
+		radial-gradient(60% 60% at 0% 100%, #b5c394 0%, rgb(181 195 148 / 0) 70%),
+		radial-gradient(60% 60% at 100% 100%, #8fb3b8 0%, rgb(143 179 184 / 0) 70%), #f1eed6;
+	--ground: #f1eed6;
+	--card: #fffdf4;
+	--ink: #0a3323;
+	--quiet: #3b5446;
+	--edge: #0a3323;
+	--field-edge: #6e8574;
+	--rule: #e4e1c6;
+	--accent: #d3968c;
+	--shadow-card: -6px 6px 0 var(--accent);
+	--shadow-btn: -2px 2px 0 var(--accent);
+	--primary: #0a3323;
+	--primary-ink: #fffdf4;
+	--moss: #839958;
+	--midnight: #105666;
+	--beige: #f7f4d5;
+	--strip-a: #cfe1e3;
+	--strip-b: #dce4c6;
+	--strip-c: #f2dad4;
+	--leader: #b7cbc9;
+	--ok-bg: #dce4c6;
+	--alert-bg: #f6e1dc;
+	--alert-ink: #8a3b30;
+	--danger: #9c4a3f;
+	--preview-bg: #0a3323;
+	--r-card: 14px;
+	--r-btn: 8px;
+	--r-chip: 6px;
+	font-family: Inter, system-ui, 'Segoe UI', sans-serif;
+	color: var(--ink);
+	background: var(--page);
+	font-size: 14px;
+	line-height: 1.4;
+}
+.card {
+	background: var(--card);
+	border: 1.5px solid var(--edge);
+	border-radius: var(--r-card);
+	box-shadow: var(--shadow-card);
+	overflow: hidden;
+}
+.btn {
+	font:
+		600 13px Inter,
+		system-ui,
+		sans-serif;
+	color: var(--ink);
+	background: var(--card);
+	border: 1.5px solid var(--edge);
+	border-radius: var(--r-btn);
+	padding: 6px 10px;
+	min-height: 32px;
+}
+.btn.primary {
+	background: var(--primary);
+	color: var(--primary-ink);
+	box-shadow: var(--shadow-btn);
+}
+.btn.danger {
+	color: var(--danger);
+	border-color: var(--danger);
+}
+* {
+	scrollbar-width: none;
+}
+*::-webkit-scrollbar {
+	display: none;
+}
+
+/* Shared layout classes (tokens only). */
+html,
+body {
+	margin: 0;
+	min-height: 100%;
+}
+body {
+	background: var(--page);
+}
+a {
+	color: var(--ink);
+}
+.btn {
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	text-decoration: none;
+	box-sizing: border-box;
+}
+.btn:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+.btn:focus-visible,
+.seg button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+	outline: 2px solid var(--midnight);
+	outline-offset: 2px;
+}
+.strip {
+	border-bottom: 1.5px solid var(--edge);
+	padding: 12px 16px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+.strip h2 {
+	margin: 0;
+	font-size: 17px;
+	font-weight: 700;
+}
+.strip.a {
+	background: var(--strip-a);
+}
+.strip.b {
+	background: var(--strip-b);
+}
+.strip.c {
+	background: var(--strip-c);
+}
+.body {
+	padding: 14px 16px;
+}
+.chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 2px 8px;
+	border-radius: var(--r-chip);
+	font-size: 12px;
+	font-weight: 600;
+	background: var(--beige);
+	border: 1px solid var(--field-edge);
+	white-space: nowrap;
+}
+.chip.leader {
+	background: var(--leader);
+}
+.chip.ok {
+	background: var(--ok-bg);
+}
+.chip.alert {
+	background: var(--alert-bg);
+	color: var(--alert-ink);
+}
+.kbd {
+	font:
+		600 11px Inter,
+		sans-serif;
+	border: 1px solid var(--field-edge);
+	border-radius: 4px;
+	padding: 1px 5px;
+	color: var(--quiet);
+	background: var(--card);
+	white-space: nowrap;
+}
+.quiet {
+	color: var(--quiet);
+}
+.seg {
+	display: inline-flex;
+	border: 1.5px solid var(--edge);
+	border-radius: var(--r-btn);
+	overflow: hidden;
+}
+.seg button {
+	border: 0;
+	background: var(--card);
+	color: var(--ink);
+	font:
+		600 13px Inter,
+		sans-serif;
+	padding: 6px 12px;
+	min-height: 30px;
+	cursor: pointer;
+}
+.seg button[aria-pressed='true'] {
+	background: var(--primary);
+	color: var(--primary-ink);
+}
+.note {
+	padding: 10px 12px;
+	border-radius: var(--r-btn);
+	border: 1.5px solid var(--edge);
+}
+.note.ok {
+	background: var(--ok-bg);
+}
+.note.alert {
+	background: var(--alert-bg);
+	color: var(--alert-ink);
+	border-color: var(--alert-ink);
+}
+input,
+select,
+textarea {
+	font: inherit;
+	color: var(--ink);
+	background: var(--card);
+	border: 1.5px solid var(--field-edge);
+	border-radius: var(--r-btn);
+	padding: 5px 8px;
+	min-height: 30px;
+	box-sizing: border-box;
+}
+table {
+	width: 100%;
+	border-collapse: collapse;
+}
+th,
+td {
+	text-align: left;
+	padding: 7px 8px;
+	border-bottom: 1px solid var(--rule);
+	vertical-align: middle;
+}
+th {
+	font-size: 12px;
+	color: var(--quiet);
+	font-weight: 600;
+}
+.bar {
+	position: relative;
+	height: 18px;
+	border: 1.5px solid var(--edge);
+	border-radius: 5px;
+	background: var(--card);
+	overflow: hidden;
+}
+.bar > span {
+	position: absolute;
+	inset: 0 auto 0 0;
+	background: var(--moss);
+}
+.bar > i {
+	position: absolute;
+	top: -2px;
+	bottom: -2px;
+	border-left: 2px dashed var(--danger);
+}
+.row {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+.sr {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+}

@@ -86,6 +86,20 @@ The installer is written to `installer/FaceCam-Setup-2.0.0.exe`. The release bui
 | `packaging/` | Inno Setup installer script |
 | `rust-spike/` | Rust feasibility measurements (not part of the app) |
 | `tests/` | 20 unit and blind-simulation tests |
+| `c-spike/`, `rust-spike/` | Low-level feasibility measurements (not part of the app) |
+
+## Low-level spikes
+
+The app is Python, but most of its memory and CPU time is in native libraries: OpenCV (C++), ONNX Runtime / TFLite and the DirectShow DLL. To test whether a lower-level rewrite would help, the same YuNet model was run in four ways:
+
+| Implementation | RSS after inference | Inference |
+| --- | --- | --- |
+| Python + OpenCV YuNet | ~46 MB | 7.6 ms at 320 px |
+| Rust + ONNX Runtime | ~63 MB | 6.1 ms at 640 px |
+| **C + ONNX Runtime C API** | **~57 MB** | **13.8 ms at 640 px** |
+| Rust + tract (pure Rust kernels) | ~19 MB | 197 ms at 640 px |
+
+Sources are in `c-spike/` and `rust-spike/`. Conclusion: rewriting the app in C or Rust would not automatically reduce memory; a fast inference backend costs about what OpenCV costs, and a tiny pure-Rust backend is far too slow for 30 fps. The remaining savings would come from replacing the interpreter, NumPy and OpenCV's camera buffers — a full rewrite. `c-spike/c_spike.c` needs ONNX Runtime headers and `onnxruntime.lib` (from the NuGet `Microsoft.ML.OnnxRuntime` package) and MSVC `vcvars64.bat`; the bundled DLL exposes API 17.
 
 ## Tests
 

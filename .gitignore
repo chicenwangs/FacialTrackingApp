@@ -5,6 +5,8 @@ __pycache__/
 /installer/
 *.egg-info/
 rust-spike/target/
+c-spike/*.exe
+c-spike/*.obj
 native/softcam/src/**/x64/
 native/softcam/src/**/Debug/
 native/softcam/src/**/Release/

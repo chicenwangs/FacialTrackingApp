@@ -1,20 +1,55 @@
-# FaceCam v2
+# FaceCam 2.0
 
-A Windows app that follows your face with the webcam and sends the framed video to **its own** virtual camera. Zoom, Discord, Teams, OBS and browsers pick that camera directly — you do not need OBS Virtual Camera or any other app that already provides one.
+FaceCam keeps your face framed in a webcam feed and sends the result to **its own virtual camera**. Zoom, Discord, Teams, OBS and browsers select **FaceCam Camera** directly — OBS Virtual Camera is not needed.
 
-This is a full rewrite of `FacialTrackingApp`: it keeps the good tracking from v1 and the useful architecture from an earlier prototype, with its hand-sign macro system left out.
+Built from the original `FacialTrackingApp` plus the good parts of an earlier prototype; the hand-sign macro system was left out.
 
-## What you asked for
+## Install
 
-- **Its own camera output.** The only output is the bundled DirectShow filter (`native/softcam`), named **FaceCam Camera** after the build it came from. There is no output picker and no OBS/Unity option.
-- **The webcam is picked automatically.** Startup probes camera indices and uses the saved one if it works, otherwise the first working camera. Setup no longer asks you to choose.
-- **v1 two-box tracking, much cheaper.** `facecam/vision/hybrid_face.py` fuses face landmarks (0.6) + a tight box (0.3) + an enlarged box (0.1), with speed-adaptive smoothing, Kalman, rate limiting and a deadband so a still face stays still. The default landmark source is OpenCV YuNet (233 KB ONNX, `models/`), which avoids loading MediaPipe/TFLite at all: **~106 MB engine, ~132 MB with the native UI**. Use `python main.py --facemesh` for the old MediaPipe FaceMesh landmarks (better fine detail, ~170 MB engine). KCF was dropped: it allocated ~126 MB of FFT buffers on first update; two cheap MOSSE boxes replace it.
-- **Freeze framing.** Press **Ctrl+Alt+F** (from any app), use the Freeze button, or the tray menu. The crop holds exactly where it is; resuming re-seeds the filter so it eases back instead of jumping.
-- **Tray + Start with Windows + low-power pause.** An opt-in checkbox writes a per-user Run entry and starts FaceCam in the tray. Press **Ctrl+Alt+P**, use the Pause button, or the tray item to go dormant: the webcam is closed, detection stops, the preview is not decoded, and the virtual camera sends one placeholder frame per second instead of 30 live frames. Measured working set drops from ~111 MB active to **~83 MB dormant**; resume re-opens the camera and re-acquires the face. Autostart starts dormant. Closing **X still quits**.
-- **Restyled native UI.** Card layout, status chips, preview frame and clear controls. `python main.py --web` keeps the Svelte UI at ~150 MB extra; both UIs have a Freeze button.
-- **30 fps preview and output.** `facecam/ui/preview.py` serves 640×360 MJPEG at 30 fps; the virtual camera stays 1280×720 at 30 fps. Separate capture / vision / output threads use a newest-frame buffer and placeholder frames when the webcam stalls.
+1. Download `FaceCam-Setup-2.0.0.exe` from the [latest release](https://github.com/chicenwangs/FacialTrackingApp/releases/latest).
+2. Run it and approve the UAC prompt. The installer copies the app and registers **FaceCam Camera** with Windows.
+3. Start FaceCam from the Start menu or desktop shortcut.
+4. In Zoom/Discord/Teams/OBS, pick **FaceCam Camera** as the webcam. Restart any app that was already open before the install.
 
-## Install and run
+Optional installer choices: desktop shortcut, and "Start FaceCam with Windows" (starts in the tray in low-power mode). Uninstalling removes both the app and the camera registration.
+
+## Features
+
+- **Own camera output** — a bundled DirectShow filter, no OBS or other virtual-camera app.
+- **Auto camera selection** — the first working webcam is used; no setup prompt.
+- **Face framing** — two-box fusion (face landmarks + tight and enlarged trackers), Kalman smoothing, rate limiting and a deadband so a still face stays still.
+- **Corner tracking** — detection rate increases near the edges of the frame.
+- **Auto-zoom** — the face fills a target share of the frame; adjustable from 0.5× to 2×.
+- **Brightness and contrast** controls.
+- **Freeze framing** — hold the current crop; `Ctrl+Alt+F` or the button/tray item.
+- **Low-power pause** — `Ctrl+Alt+P` closes the webcam, stops detection and sends one placeholder frame per second instead of 30 live frames. Working set drops from ~111 MB to ~83 MB.
+- **Tray and autostart** — Open, Freeze, Pause and Quit in the tray; optional Run-key entry.
+- **30 fps preview and virtual camera** — preview is 640×360 MJPEG; output is 1280×720.
+- **30 fps output with placeholder frames** if the webcam stalls or is unplugged.
+
+## Controls
+
+| Key | Action |
+| --- | --- |
+| `Ctrl+Alt+F` | Freeze / resume framing |
+| `Ctrl+Alt+P` | Pause / resume low-power mode |
+| `Q` / `Esc` | Quit (closing the window X also quits) |
+
+The window has Output/Camera preview toggle, Zoom slider, Freeze and Pause buttons, status chips, webcam index, brightness, contrast, "Register FaceCam Camera" and "Start with Windows".
+
+Settings live in `%APPDATA%\FaceCam\settings.json`. For a portable copy set `FACECAM_HOME`.
+
+## Troubleshooting
+
+- **FaceCam Camera is not in the list.** Run the installer as admin, or click **Register FaceCam Camera** in Settings (UAC prompt). Then restart the video app.
+- **Camera busy or black.** Close other apps using the webcam; capture retries every 2 seconds and the virtual camera keeps sending a placeholder meanwhile.
+- **Jitter or drift.** Adjust Zoom, or raise `STILL_DEADBAND` / `WIDTH_DEADBAND` in `facecam/vision/hybrid_face.py` when running from source.
+- **Dirty picture after moving the folder.** The registry stores the DLL path; re-register with `regsvr32 "<folder>\native\softcam\bin\softcam-facecam.dll"` from an admin shell.
+- **32-bit apps cannot see the camera.** The filter is x64 only.
+
+## Build from source
+
+Python 3.10+ on Windows:
 
 ```powershell
 python -m venv .venv
@@ -23,52 +58,45 @@ pip install -r requirements.txt
 python main.py
 ```
 
-The webcam is picked automatically at startup. Registration (once, admin) runs `regsvr32` on `native\softcam\bin\softcam-facecam.dll`; you can also do it from an admin shell or from the Settings buttons. After registering, restart FaceCam. In other apps the camera appears as **FaceCam Camera**.
+Optional flags: `--web` uses McG's Svelte/pywebview UI (~150 MB extra), `--facemesh` uses MediaPipe landmarks instead of the lighter OpenCV YuNet detector (source only, ~170 MB), `--minimized` starts in the tray dormant.
 
-## UI
+Build the release:
 
-- **Native UI (default)** — live preview (Output / Camera toggle), Freeze button, status chips, zoom, webcam index, brightness, contrast, autostart checkbox, register button and working X.
-- **`--web` UI** — the original Svelte Home / Settings / Setup pages with the same controls; Setup appears only if the camera is not registered.
-- **Tray** — Open, Freeze framing, Pause (low power), Quit. Hotkeys: Ctrl+Alt+F freeze, Ctrl+Alt+P pause.
-- Both UIs use the same Python bridge and local MJPEG preview.
+```powershell
+pip install pyinstaller
+python -m PyInstaller FaceCam.spec --noconfirm
+"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" packaging\FaceCam.iss
+```
 
-Settings are stored in `%APPDATA%\FaceCam\settings.json` (override with `FACECAM_HOME`).
+The installer is written to `installer/FaceCam-Setup-2.0.0.exe`. The release build excludes MediaPipe to keep the download at ~58 MB; `--facemesh` therefore only works from source.
 
 ## Layout
 
 | Folder | Job |
 | --- | --- |
 | `facecam/capture` | Webcam thread, newest-frame slot, MSMF→DSHOW retry |
-| `facecam/vision` | Restored v1 landmark + MOSSE tracking |
-| `facecam/framing` | Kalman, zoom-to-face, crop, rate limiting (from an earlier prototype) |
+| `facecam/vision` | YuNet landmarks + two-box MOSSE fusion |
+| `facecam/framing` | Kalman, zoom-to-face, crop, rate limiting |
 | `facecam/vcam` | softcam output, registration check, placeholder frames |
-| `facecam/core` | Thread wiring, freeze state and fixed-rate output |
-| `facecam/platform` | Tray hotkey, autostart, vcam registration, elevated regsvr32 |
-| `facecam/ui` | Native Tkinter shell (default), optional pywebview shell, shared bridge and MJPEG preview |
+| `facecam/core` | Thread wiring, freeze/pause state, fixed-rate output |
+| `facecam/platform` | Hotkeys, autostart, vcam registration |
+| `facecam/ui` | Native Tkinter shell, optional pywebview shell, bridge, MJPEG preview |
 | `ui/` | Svelte source and built static site |
-| `native/softcam` | Built DLL and rebuild instructions |
+| `native/softcam` | Camera DLL, source and rebuild script |
+| `packaging/` | Inno Setup installer script |
+| `rust-spike/` | Rust feasibility measurements (not part of the app) |
+| `tests/` | 20 unit and blind-simulation tests |
 
-## Tests and build
+## Tests
 
 ```powershell
 python -m unittest discover -s tests
-pyinstaller FaceCam.spec
 ```
 
-18 tests cover crop math, framer, Kalman, settings, the frame buffer, YuNet startup, a still-face jitter test and a blind corner-tracking simulation. No webcam is needed. Latest sim: 0 lost frames, 16.9 px mean error, 2.66 px/frame jitter; still face moves the crop 0.33 px/frame. To rebuild the optional Svelte UI: `cd ui; npm ci; npm run build`.
+No webcam needed. The suite covers crop math, Kalman, framer, settings, freeze/pause, and a synthetic face moving through the corners (0 lost frames, ~17 px error, 2.66 px/frame jitter, still face moves 0.33 px/frame).
 
-## Rust feasibility spike
+`test_with_face.py` runs a 60-second live check with you in front of the camera: face box, crop, output device, FPS and RSS once a second.
 
-`rust-spike/` contains two small Rust programs that run the same YuNet ONNX model on a test face and print RSS and inference time. Measured here:
+## Credits
 
-| Runtime | RSS after inference | Inference |
-| --- | --- | --- |
-| Python + OpenCV YuNet | ~46 MB | 7.6 ms at 320 px |
-| Rust + tract (pure Rust kernels) | ~19 MB | 197 ms at 640 px |
-| Rust + ONNX Runtime (optimised) | ~63 MB | 6.1 ms at 640 px |
-
-Conclusion: Rust does not automatically save memory. A fast inference backend costs about as much as OpenCV's; the real savings would come from replacing the Python interpreter, NumPy and OpenCV's camera buffers, which is a full rewrite. Build the spike with `ORT_STRATEGY=system` and `ORT_LIB_LOCATION` pointing at a folder with `include/` and `lib/` from ONNX Runtime (the `download` strategy's old 1.8.1 URL is dead).
-
-## Not included
-
-The hand-sign gesture pipeline, sign trainer, macro engine, Win32 hotkeys, tray, overlay HUD, autostart and installer. The OpenCV preview window and the output picker from the earlier v2 were also removed.
+OpenCV YuNet model from OpenCV Zoo; DirectShow softcam by tshino (MIT) patched for FaceCam; UI styling derived from an earlier prototype.

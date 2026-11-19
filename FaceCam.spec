@@ -5,7 +5,7 @@ from pathlib import Path
 
 from PyInstaller.utils.hooks import collect_all
 
-root = Path(SPECPATH).parent
+root = Path(SPECPATH)
 datas = [(str(root / "ui" / "build"), "ui/build"), (str(root / "models"), "models")]
 dll = root / "native" / "softcam" / "bin" / "softcam-facecam.dll"
 if dll.exists():
@@ -14,7 +14,9 @@ else:
     print("WARNING: FaceCam camera DLL missing; build will ship without its own camera")
 
 binaries, hidden = [], []
-for package in ("mediapipe", "webview", "clr_loader", "pythonnet"):
+# MediaPipe is intentionally excluded: the release uses OpenCV YuNet, and
+# MediaPipe's Jax/SciPy stack added ~270MB. --facemesh remains source-only.
+for package in ("webview", "clr_loader", "pythonnet"):
     data, bins, imports = collect_all(package)
     datas += data
     binaries += bins
@@ -29,7 +31,7 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=["IPython", "pytest"],
+    excludes=["IPython", "pytest", "mediapipe", "jax", "jaxlib", "scipy", "matplotlib"],
     noarchive=False,
     optimize=0,
 )
@@ -37,6 +39,7 @@ pyz = PYZ(a.pure)
 exe = EXE(
     pyz, a.scripts, [], exclude_binaries=True, name="FaceCam",
     debug=False, console=os.environ.get("FACECAM_CONSOLE") == "1",
+    icon=str(root / "Icon.ico"),
     upx=True, runtime_tmpdir=None,
 )
 coll = COLLECT(exe, a.binaries, a.datas, name="FaceCam")

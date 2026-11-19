@@ -2,5 +2,14 @@ __pycache__/
 *.pyc
 /build/
 /dist/
+/installer/
 *.egg-info/
 rust-spike/target/
+native/softcam/src/**/x64/
+native/softcam/src/**/Debug/
+native/softcam/src/**/Release/
+*.obj
+*.lib
+*.pdb
+*.tlog
+*.exp

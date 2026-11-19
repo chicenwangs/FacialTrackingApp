@@ -47,6 +47,7 @@ class NativeShell:
         self.fps_text = tk.StringVar(value="Stages: measuring…")
         self.output_text = tk.StringVar(value="Output: 1280×720 @ 30 fps")
         self.freeze_text = tk.StringVar(value="Freeze framing")
+        self.pause_text = tk.StringVar(value="Pause (low power)")
         self.message = tk.StringVar(value="")
 
         self.zoom = tk.DoubleVar(value=app.settings.zoom)
@@ -104,6 +105,10 @@ class NativeShell:
                                        font=(FONT, 10, "bold"), bg=ACCENT, fg=CARD,
                                        relief="groove", command=self.toggle_freeze)
         self.freeze_button.pack(side="left", padx=6)
+        self.pause_button = tk.Button(row, textvariable=self.pause_text,
+                                      font=(FONT, 10, "bold"), bg=INK, fg=CARD,
+                                      relief="groove", command=self.toggle_pause)
+        self.pause_button.pack(side="left", padx=6)
         tk.Label(row, text="Zoom", font=(FONT, 10), bg=CARD, fg=INK).pack(side="left", padx=(20, 4))
         self.zoom_label = tk.Label(row, text="1.0×", font=(FONT, 10, "bold"),
                                    bg=CARD, fg=INK, width=5)
@@ -111,7 +116,7 @@ class NativeShell:
         tk.Scale(row, from_=0.5, to=2.0, resolution=0.1, orient="horizontal",
                  variable=self.zoom, command=self._set_zoom, bg=CARD, fg=INK,
                  highlightbackground=CARD, length=260, showvalue=False).pack(side="left")
-        tk.Label(controls, text="Ctrl+Alt+F freezes the framing from any app",
+        tk.Label(controls, text="Ctrl+Alt+F freezes framing · Ctrl+Alt+P pauses to save power",
                  font=(FONT, 9), bg=CARD, fg=MUTED).pack(anchor="w", pady=(6, 0))
 
         status = self._card(self.root)
@@ -167,6 +172,9 @@ class NativeShell:
                 pystray.MenuItem("Open FaceCam", on_open, default=True),
                 pystray.MenuItem("Freeze framing", on_freeze,
                                  checked=lambda item: self.app.freeze.is_set()),
+                pystray.MenuItem("Pause (low power)",
+                                 lambda icon: self.root.after(0, self.toggle_pause),
+                                 checked=lambda item: self.app.pause.is_set()),
                 pystray.MenuItem("Quit", lambda icon: self.root.after(0, self.close)),
             )
             self.tray = pystray.Icon("FaceCam", image, "FaceCam", menu)
@@ -179,6 +187,9 @@ class NativeShell:
 
     def toggle_freeze(self) -> None:
         self.app.toggle_freeze()
+
+    def toggle_pause(self) -> None:
+        self.app.toggle_pause()
 
     def _set_zoom(self, _value=None) -> None:
         self.bridge.set_zoom(float(self.zoom.get()))
@@ -202,6 +213,9 @@ class NativeShell:
         cap = None
         current_mode = None
         while not self.app.stop.is_set():
+            if self.app.pause.is_set():
+                time.sleep(0.2)          # no preview decoding while dormant
+                continue
             mode = self.mode.get()
             if cap is None or mode != current_mode:
                 if cap is not None:
@@ -227,10 +241,13 @@ class NativeShell:
             self.photo = ImageTk.PhotoImage(image)
             self.preview_label.configure(image=self.photo, text="")
         state = self.bridge.state()
-        self.status.set(state["state"].capitalize())
-        self.status_label.configure(bg=ACCENT if not state["frozen"] else STRIP)
+        self.status.set("Low power" if state["paused"] else state["state"].capitalize())
+        self.status_label.configure(bg=STRIP if (state["frozen"] or state["paused"]) else ACCENT)
         self.freeze_button.configure(bg=STRIP if state["frozen"] else ACCENT,
                                      fg=INK if state["frozen"] else CARD)
+        self.pause_button.configure(bg=ACCENT if state["paused"] else INK,
+                                    fg=CARD)
+        self.pause_text.set("Resume" if state["paused"] else "Pause (low power)")
         self.camera_text.set(f"● Webcam: {state['camera']}")
         vcam = state["vcam"]
         self.vcam_text.set(f"● Virtual camera: FaceCam Camera · {vcam['status']}"
@@ -243,7 +260,7 @@ class NativeShell:
                 self.tray.update_menu()
             except Exception:
                 pass
-        self.root.after(100, self._poll)
+        self.root.after(500 if self.app.pause.is_set() else 100, self._poll)
 
     def close(self) -> None:
         self.app.stop.set()

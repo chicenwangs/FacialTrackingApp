@@ -26,6 +26,7 @@ class App:
 
         self.stop = threading.Event()
         self.freeze = threading.Event()
+        self.pause = threading.Event()
         self.hotkey = None
         self.metrics = Metrics()
         self.fps: dict[str, float] = {}
@@ -37,10 +38,11 @@ class App:
 
             self.face = HybridFaceTracker(worker_factory=YuNetWorker,
                                           detect_every=3, edge_every=2)
-        self.vision = VisionThread(self.slot, self.face, self.metrics, self.stop, self.freeze)
+        self.vision = VisionThread(self.slot, self.face, self.metrics, self.stop,
+                                   self.freeze, self.pause)
         self.capture = CaptureThread(
             self.settings.camera, (self.settings.width, self.settings.height),
-            self.slot, self.metrics, self.stop,
+            self.slot, self.metrics, self.stop, self.pause,
         )
 
         self.out, self.out_status = make_output()
@@ -64,9 +66,9 @@ class App:
         for thread in (self.capture, self.vision, self.output):
             thread.start()
         try:
-            from facecam.platform.hotkey import FreezeHotkey
+            from facecam.platform.hotkey import GlobalHotkeys
 
-            self.hotkey = FreezeHotkey(self.toggle_freeze)
+            self.hotkey = GlobalHotkeys(self.toggle_freeze, self.toggle_pause)
             self.hotkey.start()
         except Exception as exc:
             log.warning("freeze hotkey unavailable: %s", exc)
@@ -78,6 +80,14 @@ class App:
         else:
             self.freeze.set()
         return self.freeze.is_set()
+
+    def toggle_pause(self) -> bool:
+        """Enter or leave low-power mode (webcam closed, no detection)."""
+        if self.pause.is_set():
+            self.pause.clear()
+        else:
+            self.pause.set()
+        return self.pause.is_set()
 
     def shutdown(self) -> None:
         self.stop.set()

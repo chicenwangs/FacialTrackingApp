@@ -75,10 +75,12 @@ def open_camera(index: int, width: int = 1280, height: int = 720, fps: int = 30)
 
 class CaptureThread(threading.Thread):
     def __init__(self, index: int, size: tuple[int, int], slot: LatestFrame,
-                 metrics: Metrics, stop: threading.Event) -> None:
+                 metrics: Metrics, stop: threading.Event,
+                 pause: threading.Event | None = None) -> None:
         super().__init__(name="capture", daemon=True)
         self.index, self.size, self.slot = index, size, slot
         self.metrics, self.stop = metrics, stop
+        self.pause = pause if pause is not None else threading.Event()
         self._reopen = threading.Event()
         self.status = "opening"
 
@@ -92,6 +94,10 @@ class CaptureThread(threading.Thread):
     def run(self) -> None:
         seq = 0
         while not self.stop.is_set():
+            if self.pause.is_set():
+                self.status = "paused"
+                self.pause.wait(0.1)     # webcam stays closed while dormant
+                continue
             self._reopen.clear()
             cap = open_camera(self.index, *self.size)
             if cap is None:
@@ -101,7 +107,7 @@ class CaptureThread(threading.Thread):
                 continue
             self.status = "ok"
             try:
-                while not self.stop.is_set() and not self._reopen.is_set():
+                while not self.stop.is_set() and not self._reopen.is_set() and not self.pause.is_set():
                     if not cap.grab():
                         log.warning("camera read failed, reopening")
                         break

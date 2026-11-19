@@ -38,10 +38,12 @@ class VisionThread(threading.Thread):
     """Track the face every frame; Kalman and crop math do the smoothing."""
 
     def __init__(self, slot: LatestFrame, face, metrics: Metrics,
-                 stop: threading.Event, freeze: threading.Event | None = None) -> None:
+                 stop: threading.Event, freeze: threading.Event | None = None,
+                 pause: threading.Event | None = None) -> None:
         super().__init__(name="vision", daemon=True)
         self.slot, self.face, self.metrics, self.stop = slot, face, metrics, stop
         self.freeze = freeze if freeze is not None else threading.Event()
+        self.pause = pause if pause is not None else threading.Event()
         self.cmds: queue.Queue[str] = queue.Queue()
         self.framer: Framer | None = None
         self.crop: Rect | None = None
@@ -63,7 +65,16 @@ class VisionThread(threading.Thread):
     def run(self) -> None:
         seq = 0
         was_frozen = False
+        was_paused = False
         while not self.stop.is_set():
+            if self.pause.is_set():
+                was_paused = True
+                self.pause.wait(0.1)      # no detection, no CPU work while dormant
+                continue
+            if was_paused:
+                was_paused = False
+                if self.framer is not None:
+                    self.framer.reset_tracking()   # re-acquire cleanly on resume
             frame = self.slot.wait_newer(seq, timeout=0.5)
             if frame is None:
                 continue
@@ -107,9 +118,28 @@ class OutputThread(threading.Thread):
         app = self.app
         app.out.open(OUT_W, OUT_H, OUT_FPS)
         period = 1 / OUT_FPS
+        dormant_frame = placeholder(OUT_W, OUT_H,
+                                    "FaceCam paused - Ctrl+Alt+P to resume")
+        was_paused = False
         next_t = time.perf_counter()
         try:
             while not self.stop.is_set():
+                if app.pause.is_set():
+                    if not was_paused:
+                        was_paused = True
+                        next_t = time.perf_counter()
+                    app.out.send(dormant_frame)   # keep the camera alive at 1 fps
+                    next_t += 1.0
+                    delay = next_t - time.perf_counter()
+                    if delay > 0:
+                        time.sleep(delay)
+                    else:
+                        next_t = time.perf_counter()
+                    continue
+                if was_paused:
+                    was_paused = False
+                    next_t = time.perf_counter()
+
                 t0 = time.perf_counter_ns()
                 frame = self.slot.get()
                 if frame is None or t0 - frame.t_ns > STALE_NS:

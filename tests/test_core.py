@@ -153,6 +153,46 @@ class PipelineTests(unittest.TestCase):
         finally:
             tracker.close()
 
+    def test_pause_stops_detection_then_resumes(self):
+        class CountingFace:
+            def __init__(self):
+                self.calls = 0
+
+            def detect(self, frame):
+                self.calls += 1
+                return FaceBox(Rect(600, 300, 180, 180), 0.9)
+
+        stop, pause = threading.Event(), threading.Event()
+        slot = LatestFrame()
+        face = CountingFace()
+        vision = VisionThread(slot, face, Metrics(), stop, None, pause)
+        vision.start()
+        try:
+            image = np.zeros((720, 1280, 3), np.uint8)
+            for seq in range(1, 31):
+                slot.put(Frame(image, time.perf_counter_ns(), seq))
+                time.sleep(1 / 30)
+            pause.set()
+            time.sleep(0.2)
+            before = face.calls
+            for seq in range(31, 51):
+                slot.put(Frame(image, time.perf_counter_ns(), seq))
+                time.sleep(1 / 30)
+            self.assertLessEqual(face.calls - before, 1)   # one call may be in flight
+
+            pause.clear()
+            deadline = time.time() + 2
+            for seq in range(51, 101):
+                slot.put(Frame(image, time.perf_counter_ns(), seq))
+                time.sleep(1 / 30)
+                if face.calls > before:
+                    break
+            self.assertGreater(face.calls, before)
+        finally:
+            stop.set()
+            pause.clear()
+            vision.join(timeout=2)
+
     def test_freeze_holds_the_crop_then_resumes(self):
         class MovingFace:
             def __init__(self):

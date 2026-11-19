@@ -28,6 +28,8 @@ def main() -> None:
         from facecam.core import App
 
         app = App(backend="facemesh" if args.facemesh else "yunet")
+        if args.minimized:
+            app.pause.set()      # autostart sits in the tray, webcam closed
         app.start()
         if args.web:
             from facecam.ui.shell import Shell

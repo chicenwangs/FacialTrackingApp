@@ -39,6 +39,9 @@
 			<button class="btn" onclick={() => call('toggle_freeze')}
 				>{s?.frozen ? 'Resume framing' : 'Freeze framing'}</button
 			>
+			<button class="btn" onclick={() => call('toggle_pause')}
+				>{s?.paused ? 'Resume (full power)' : 'Pause (low power)'}</button
+			>
 			{#if s?.fps?.output}<span class="chip">{s.fps.output} fps out</span>{/if}
 			<label class="row">
 				Zoom

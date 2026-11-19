@@ -42,9 +42,11 @@ class Bridge:
         out = app.out
         connected = isinstance(out, SoftcamOutput) and out.connected
         return {
-            "state": "frozen" if app.freeze.is_set() else (
-                "tracking" if app.capture.status == "ok" else "camera issue"),
+            "state": "paused" if app.pause.is_set() else (
+                "frozen" if app.freeze.is_set() else (
+                    "tracking" if app.capture.status == "ok" else "camera issue")),
             "frozen": app.freeze.is_set(),
+            "paused": app.pause.is_set(),
             "fps": app.fps,
             "camera": app.capture.status,
             "vcam": {
@@ -104,6 +106,14 @@ class Bridge:
 
     def toggle_freeze(self) -> bool:
         return self._app.toggle_freeze()
+
+    def toggle_pause(self) -> bool:
+        return self._app.toggle_pause()
+
+    def set_paused(self, paused: bool) -> bool:
+        if bool(paused) != self._app.pause.is_set():
+            return self._app.toggle_pause()
+        return self._app.pause.is_set()
 
     def _regsvr(self, unregister: bool) -> dict[str, Any]:
         import sys

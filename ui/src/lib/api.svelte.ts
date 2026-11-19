@@ -3,6 +3,7 @@
 export type Live = {
 	state: string;
 	frozen: boolean;
+	paused: boolean;
 	fps: Record<string, number>;
 	camera: string;
 	vcam: { status: string; live: boolean; connected: boolean };
